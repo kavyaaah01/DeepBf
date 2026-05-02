@@ -29,7 +29,6 @@ st.write("Bloom Filter + evoCNN based malicious URL detection system")
 from google.colab import drive
 drive.mount('/content/drive')
 
-!ls "/content/drive/MyDrive/mini_project"
 
 MODEL_PATH = "/content/drive/MyDrive/mini_project/ga_evocnn_best_model.h5"
 SCALER_PATH = "/content/drive/MyDrive/mini_project/minmax_scaler.pkl"
