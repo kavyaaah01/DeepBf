@@ -17,7 +17,7 @@ st.write("Bloom Filter + evoCNN based detection system")
 # =========================
 @st.cache_resource
 def load_artifacts():
-    model = load_model("ga_evocnn_best_model.keras",compile=False)
+    model = load_model("ga_evocnn_best_model.keras", compile=False)
     scaler = joblib.load("minmax_scaler.pkl")
     return model, scaler
 
