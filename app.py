@@ -62,7 +62,9 @@ class BloomFilter2D:
             i = h % self.M
             j = h % self.N
             rho = h % self.beta
-            self.filter[i, j] |= (1 << rho)
+
+            mask = np.uint64(1) << np.uint64(rho)
+            self.filter[i, j] = self.filter[i, j] | mask
 
     def lookup(self, key):
         for seed in range(5):
@@ -70,8 +72,12 @@ class BloomFilter2D:
             i = h % self.M
             j = h % self.N
             rho = h % self.beta
-            if not (self.filter[i, j] & (1 << rho)):
+
+            mask = np.uint64(1) << np.uint64(rho)
+
+            if (self.filter[i, j] & mask) == 0:
                 return False
+
         return True
 
 @st.cache_resource
