@@ -4,17 +4,11 @@ import pandas as pd
 import joblib
 from tensorflow.keras.models import load_model
 
-# =========================
-# PAGE CONFIG
-# =========================
 st.set_page_config(page_title="DeepBF", layout="wide")
 
 st.title("DeepBF: Malicious URL Detection")
 st.write("Bloom Filter + evoCNN based detection system")
 
-# =========================
-# MODEL + SCALER
-# =========================
 @st.cache_resource
 def load_artifacts():
     model = load_model("ga_evocnn_best_model.keras", compile=False)
@@ -23,9 +17,6 @@ def load_artifacts():
 
 model, scaler = load_artifacts()
 
-# =========================
-# METRICS DISPLAY
-# =========================
 st.subheader("Model Performance")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -46,9 +37,7 @@ cm_df = pd.DataFrame(
 
 st.table(cm_df)
 
-# =========================
-# BLOOM FILTER
-# =========================
+
 class BloomFilter2D:
     def __init__(self, M, N):
         self.M = M
@@ -86,9 +75,7 @@ def create_filters():
 
 malicious_filter, benign_filter = create_filters()
 
-# =========================
-# FEATURE PROCESSING
-# =========================
+
 def prepare(features):
     features = np.array(features, dtype=np.float32).flatten()
     features = np.nan_to_num(features, nan=0.0, posinf=1e6, neginf=-1e6)
@@ -96,6 +83,8 @@ def prepare(features):
 
     if len(features) == 79:
         features = np.pad(features, (0, 2))
+    elif len(features) != 81:
+        raise ValueError(f"Expected 79 or 81 feature columns, got {len(features)}")
 
     features = scaler.transform(features.reshape(1, -1))
     return features.reshape(1, 9, 9, 1)
@@ -104,9 +93,7 @@ def vector_to_string(features):
     features = np.array(features).astype(int)
     return "_".join(map(str, features))
 
-# =========================
-# CLASSIFIER
-# =========================
+
 def classify(features):
     key = vector_to_string(features)
 
@@ -128,9 +115,6 @@ def classify(features):
         benign_filter.insert(key)
         return f"Benign (evoCNN) - Confidence: {round(prob, 4)}"
 
-# =========================
-# UI INPUT
-# =========================
 st.subheader("Upload URL Feature Dataset")
 
 uploaded_file = st.file_uploader(
@@ -152,16 +136,30 @@ if uploaded_file is not None:
     )
 
     if st.button("Predict"):
-        features = df.iloc[row_index].values
 
-        result = classify(features)
+    selected_row = df.iloc[row_index].copy()
 
-        st.subheader("Prediction Result")
+    if "label" in df.columns:
+        actual_label = selected_row["label"]
+        features = selected_row.drop(labels=["label"]).values
+    else:
+        actual_label = None
+        features = selected_row.values
 
-        if "Malicious" in result:
-            st.error(result)
-        else:
-            st.success(result)
+   
+    features = pd.to_numeric(pd.Series(features), errors="coerce").fillna(0).values
+
+    result = classify(features)
+
+    st.subheader("Prediction Result")
+
+    if "Malicious" in result:
+        st.error(result)
+    else:
+        st.success(result)
+
+    if actual_label is not None:
+        st.write("Actual Label:", actual_label)
 
 else:
     st.info("Upload a CSV file to start prediction.")
