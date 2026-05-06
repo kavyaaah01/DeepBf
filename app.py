@@ -134,11 +134,11 @@ if uploaded_file is not None:
         max_value=len(df) - 1,
         value=0
     )
-
-    if st.button("Predict"):
+if st.button("Predict"):
 
     selected_row = df.iloc[row_index].copy()
 
+    # Remove label column if present
     if "label" in df.columns:
         actual_label = selected_row["label"]
         features = selected_row.drop(labels=["label"]).values
@@ -146,7 +146,7 @@ if uploaded_file is not None:
         actual_label = None
         features = selected_row.values
 
-   
+    # Ensure numeric
     features = pd.to_numeric(pd.Series(features), errors="coerce").fillna(0).values
 
     result = classify(features)
@@ -160,6 +160,4 @@ if uploaded_file is not None:
 
     if actual_label is not None:
         st.write("Actual Label:", actual_label)
-
-else:
-    st.info("Upload a CSV file to start prediction.")
+   
